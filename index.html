@@ -243,14 +243,14 @@ function renderControls(){
 
 async function startCam(){
   try{
-    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',aspectRatio:9/16,width:{ideal:720},height:{ideal:1280}},audio:true});
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',aspectRatio:9/16,width:{ideal:720},height:{ideal:1280}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
     streams[current]=s;const pv2=document.getElementById('camPreview');pv2.muted=true;pv2.volume=0;renderQuestion();setTimeout(()=>{const m=document.getElementById('distanceMsg');if(m)m.style.display='block';setTimeout(()=>{if(m)m.style.display='none';},5000);},500);
   }catch(e){alert('No se pudo acceder a la cámara. Revisa los permisos.');}
 }
 
 function startRec(){
   if(!streams[current])return;
-  const chunks=[];const rec=new MediaRecorder(streams[current]);
+  const chunks=[];const options=MediaRecorder.isTypeSupported('video/webm;codecs=vp8')?{mimeType:'video/webm;codecs=vp8',videoBitsPerSecond:800000}:{};const rec=new MediaRecorder(streams[current],options);
   rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
   rec.onstop=()=>{blobs[current]=new Blob(chunks,{type:'video/webm'});clearInterval(timerIntervals[current]);document.getElementById('recOverlay').style.display='none';document.getElementById('savedOverlay').style.display='block';renderControls();};
   recorders[current]=rec;secs[current]=0;rec.start();
